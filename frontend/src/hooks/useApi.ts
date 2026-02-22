@@ -25,6 +25,7 @@ import type {
     SustainabilityData,
     AdminData,
     Job,
+    RouteResult,
 } from "@/lib/api";
 
 // ── Dashboard ──

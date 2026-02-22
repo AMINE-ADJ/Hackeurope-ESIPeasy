@@ -85,11 +85,17 @@ export interface Job {
     priority?: string;
     green_only?: boolean;
     carbon_saved_grams?: number;
+    carbon_expected_grams?: number;
+    carbon_actual_grams?: number;
+    carbon_reduction_pct?: number;
+    renewable_pct?: number;
     node_name?: string;
     node_zone?: string;
+    node_type?: string;
     created_at?: string;
     budget_max_eur?: number;
     estimated_cost?: number;
+    hourly_rate?: number;
 }
 
 export interface GpuFleetItem {
@@ -351,7 +357,29 @@ export function submitWorkload(opts: {
     });
 }
 
-export function routeWorkload(id: number): Promise<{ success: boolean; node?: unknown; score?: number }> {
+export interface RouteResult {
+    success: boolean;
+    node?: { id: number; name: string; region: string; grid_zone: string; gpu_model: string };
+    score?: number;
+    tier?: string;
+    carbon?: {
+        expected_grams: number;
+        actual_grams: number;
+        saved_grams: number;
+        reduction_pct: number;
+        baseline_intensity: number;
+        actual_intensity: number;
+        renewable_pct: number;
+        energy_kwh: number;
+    };
+    pricing?: {
+        hourly_rate: number;
+        estimated_total: number;
+        currency: string;
+    };
+}
+
+export function routeWorkload(id: number): Promise<RouteResult> {
     return apiFetch(`/workloads/${id}/route`, { method: "POST" });
 }
 

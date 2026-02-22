@@ -148,25 +148,47 @@ module Api
                        else "Standard"
                        end
 
+          # Carbon metrics
+          node = w.compute_node
+          baseline_intensity = 400.0
+          actual_intensity = node ? (node.always_green? ? 0.0 : (node.current_carbon_intensity || 250.0)) : baseline_intensity
+          gpu_kw = case node&.gpu_model
+                   when /H100/ then 0.70; when /A100/ then 0.40
+                   when /RTX 4090/ then 0.35; when /RTX 4080/ then 0.32
+                   else 0.30
+                   end
+          hours = w.estimated_duration_hours || 1.0
+          pue = node&.pue_ratio || 1.2
+          total_kwh = gpu_kw * hours * pue
+          carbon_expected = (baseline_intensity * total_kwh).round(1)
+          carbon_actual = (actual_intensity * total_kwh).round(1)
+          carbon_saved = (carbon_expected - carbon_actual).round(1)
+
           {
             id: "WKL-#{w.id.to_s.rjust(3, '0')}",
             db_id: w.id,
             name: w.name || "Workload ##{w.id}",
             status: w.status,
-            gpu: w.compute_node&.gpu_model || "—",
+            gpu: node&.gpu_model || "—",
             tier: tier_label,
-            green_score: w.compute_node ? (w.compute_node.renewable_pct.to_f).round(0) : 0,
+            green_score: node ? (node.renewable_pct.to_f).round(0) : 0,
             progress: progress,
             eta: eta,
             workload_type: w.workload_type,
             priority: w.priority,
             green_only: w.green_only?,
             carbon_saved_grams: w.status == "completed" ? w.carbon_saved_grams : w.estimated_carbon_saved_grams,
-            node_name: w.compute_node&.name,
-            node_zone: w.compute_node&.grid_zone,
+            carbon_expected_grams: carbon_expected,
+            carbon_actual_grams: carbon_actual,
+            carbon_reduction_pct: carbon_expected > 0 ? ((carbon_saved / carbon_expected) * 100).round(1) : 0,
+            renewable_pct: node&.renewable_pct&.round(1) || 0,
+            node_name: node&.name,
+            node_zone: node&.grid_zone,
+            node_type: node&.node_type,
             created_at: w.created_at.iso8601,
             budget_max_eur: w.budget_max_eur,
-            estimated_cost: w.estimated_cost
+            estimated_cost: w.estimated_cost,
+            hourly_rate: node&.hourly_cost&.round(2)
           }
         end
       end
