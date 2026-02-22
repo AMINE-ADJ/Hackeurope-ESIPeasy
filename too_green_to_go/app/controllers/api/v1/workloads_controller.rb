@@ -22,6 +22,12 @@ module Api
         workload = Workload.new(workload_params)
         workload.status = "pending"
 
+        # Auto-assign organization if not provided (frontend users)
+        unless workload.organization_id
+          workload.organization = Organization.where(org_type: "ai_consumer").first ||
+                                  Organization.first
+        end
+
         if workload.save
           render json: workload, status: :created
         else
@@ -51,7 +57,7 @@ module Api
         params.permit(
           :organization_id, :name, :workload_type, :priority,
           :required_vram_mb, :max_carbon_intensity, :max_price_per_hour,
-          :green_only, :estimated_duration_hours
+          :green_only, :estimated_duration_hours, :docker_image, :budget_max_eur
         )
       end
     end
