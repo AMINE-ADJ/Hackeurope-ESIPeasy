@@ -1,0 +1,57 @@
+<div>
+  <h1 class="text-2xl font-bold text-white mb-6">🔴 Curtailment Events</h1>
+
+  <div class="space-y-4">
+    <% @events.each do |event| %>
+      <div class="bg-tg-dark-800 rounded-xl border border-<%= event.severity == 'critical' ? 'red' : event.severity == 'high' ? 'yellow' : 'gray' %>-700/50 p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center space-x-3">
+            <span class="px-2 py-1 text-xs font-bold rounded
+              <%= case event.severity
+                  when 'critical' then 'bg-red-900/50 text-red-400'
+                  when 'high' then 'bg-yellow-900/50 text-yellow-400'
+                  else 'bg-gray-700 text-gray-400'
+                  end %>"><%= event.severity.upcase %></span>
+            <span class="text-lg font-bold text-white"><%= event.grid_zone %></span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <% unless event.alert_sent? %>
+              <%= button_to "🔊 Send Audio Alert", trigger_alert_curtailment_event_path(event), method: :post, class: "px-3 py-1 text-xs bg-red-600 hover:bg-red-500 text-white rounded" %>
+            <% end %>
+            <span class="text-xs text-gray-500"><%= event.detected_at&.strftime("%Y-%m-%d %H:%M") %></span>
+          </div>
+        </div>
+        <p class="text-sm text-gray-300 mb-2"><%= event.alert_message %></p>
+        <div class="grid grid-cols-4 gap-3 text-xs">
+          <div class="bg-tg-dark-700/50 rounded p-2 text-center">
+            <p class="text-gray-600">Curtailment</p>
+            <p class="font-bold text-red-400"><%= event.curtailment_mw.round %> MW</p>
+          </div>
+          <div class="bg-tg-dark-700/50 rounded p-2 text-center">
+            <p class="text-gray-600">Savings</p>
+            <p class="font-bold text-tg-green-400">€<%= event.potential_savings_eur.round %></p>
+          </div>
+          <div class="bg-tg-dark-700/50 rounded p-2 text-center">
+            <p class="text-gray-600">Carbon Saveable</p>
+            <p class="font-bold text-tg-green-400"><%= (event.potential_carbon_savings_g / 1000.0).round(1) %> kg</p>
+          </div>
+          <div class="bg-tg-dark-700/50 rounded p-2 text-center">
+            <p class="text-gray-600">Audio Alert</p>
+            <p class="font-bold text-<%= event.alert_sent? ? 'tg-green' : 'gray' %>-400"><%= event.alert_sent? ? '✓ Sent' : 'Pending' %></p>
+          </div>
+        </div>
+        <% if event.elevenlabs_audio_url && event.alert_sent? %>
+          <div class="mt-2 p-2 bg-tg-dark-700/30 rounded text-xs text-gray-400">
+            🔊 ElevenLabs Audio: <code class="text-blue-400"><%= event.elevenlabs_audio_url %></code>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+    <% if @events.empty? %>
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-12 text-center text-gray-500">
+        <p class="text-lg mb-2">No curtailment events</p>
+        <p class="text-sm">Click "🔴 Curtailment" demo button to simulate one.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

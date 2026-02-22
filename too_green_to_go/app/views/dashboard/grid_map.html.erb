@@ -1,0 +1,94 @@
+<div class="max-w-7xl mx-auto">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Live Grid Map</h1>
+      <p class="text-gray-400 mt-1">Energy zones × GPU availability — updated every 30s</p>
+    </div>
+    <%= link_to "← Dashboard", root_path, class: "text-tg-green hover:underline" %>
+  </div>
+
+  <!-- Legend -->
+  <div class="flex gap-6 mb-6 text-sm text-gray-400">
+    <span><span class="inline-block w-3 h-3 rounded-full bg-green-400 mr-1"></span> Surplus (curtailment)</span>
+    <span><span class="inline-block w-3 h-3 rounded-full bg-yellow-400 mr-1"></span> Moderate</span>
+    <span><span class="inline-block w-3 h-3 rounded-full bg-red-400 mr-1"></span> High carbon</span>
+  </div>
+
+  <!-- Grid zones as cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <% @grid_zones.each do |zone| %>
+      <%
+        ci = zone[:carbon_intensity]
+        color = ci < 100 ? "green" : ci < 250 ? "yellow" : "red"
+        border = zone[:surplus] ? "border-green-400 ring-2 ring-green-400/30" : "border-gray-700"
+      %>
+      <div class="bg-gray-800 rounded-xl border <%= border %> p-5 hover:bg-gray-750 transition">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-bold text-white"><%= zone[:zone] %></h3>
+          <% if zone[:surplus] %>
+            <span class="px-2 py-0.5 bg-green-900 text-green-300 text-xs font-bold rounded-full animate-pulse">SURPLUS</span>
+          <% end %>
+        </div>
+
+        <!-- Carbon intensity gauge -->
+        <div class="mb-3">
+          <div class="flex justify-between text-xs text-gray-400 mb-1">
+            <span>Carbon Intensity</span>
+            <span class="text-<%= color %>-400 font-mono"><%= ci %> gCO₂/kWh</span>
+          </div>
+          <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div class="h-full bg-<%= color %>-400 rounded-full" style="width: <%= [ci / 5.0, 100].min %>%"></div>
+          </div>
+        </div>
+
+        <!-- Renewable percentage -->
+        <div class="mb-3">
+          <div class="flex justify-between text-xs text-gray-400 mb-1">
+            <span>Renewable %</span>
+            <span class="text-emerald-400 font-mono"><%= zone[:renewable_pct] %>%</span>
+          </div>
+          <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div class="h-full bg-emerald-500 rounded-full" style="width: <%= zone[:renewable_pct] %>%"></div>
+          </div>
+        </div>
+
+        <!-- Energy price -->
+        <div class="mb-3">
+          <div class="flex justify-between text-xs text-gray-400 mb-1">
+            <span>Energy</span>
+            <span class="font-mono">€<%= zone[:energy_price] %>/MWh</span>
+          </div>
+        </div>
+
+        <% if zone[:curtailment_mw] > 0 %>
+        <div class="text-xs text-yellow-300 mb-3">
+          ⚡ Curtailment: <span class="font-bold"><%= zone[:curtailment_mw] %> MW</span>
+        </div>
+        <% end %>
+
+        <!-- Node stats -->
+        <div class="border-t border-gray-700 pt-3 mt-3">
+          <div class="grid grid-cols-3 gap-2 text-center text-xs">
+            <div>
+              <div class="text-white font-bold text-lg"><%= zone[:nodes_total] %></div>
+              <div class="text-gray-500">Total</div>
+            </div>
+            <div>
+              <div class="text-green-400 font-bold text-lg"><%= zone[:nodes_available] %></div>
+              <div class="text-gray-500">Available</div>
+            </div>
+            <div>
+              <div class="text-emerald-400 font-bold text-lg"><%= zone[:nodes_green] %></div>
+              <div class="text-gray-500">Green</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dominant source -->
+        <div class="mt-3 text-center">
+          <span class="text-xs text-gray-500">Primary: <span class="text-gray-300"><%= zone[:dominant_source] %></span></span>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

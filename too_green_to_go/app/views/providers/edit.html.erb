@@ -1,0 +1,34 @@
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold text-white mb-6">Edit Provider — <%= @organization.name %></h1>
+
+  <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-6">
+    <%= form_with(model: @organization, url: provider_path(@organization), method: :patch, class: "space-y-4") do |form| %>
+      <% if @organization.errors.any? %>
+        <div class="bg-red-900/50 border border-red-700 text-red-300 p-3 rounded-lg text-sm">
+          <% @organization.errors.full_messages.each do |msg| %>
+            <p><%= msg %></p>
+          <% end %>
+        </div>
+      <% end %>
+
+      <div>
+        <%= form.label :name, "Organization Name", class: "block text-sm text-gray-400 mb-1" %>
+        <%= form.text_field :name, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+      </div>
+
+      <div>
+        <%= form.label :contact_email, "Contact Email", class: "block text-sm text-gray-400 mb-1" %>
+        <%= form.email_field :contact_email, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+      </div>
+
+      <div>
+        <%= form.label :tier, "Service Tier", class: "block text-sm text-gray-400 mb-1" %>
+        <%= form.select :tier, [["Enterprise", "enterprise"], ["Premium", "premium"], ["Standard", "standard"]], {}, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+      </div>
+
+      <div class="pt-4">
+        <%= form.submit "Update Provider", class: "w-full px-4 py-2 bg-tg-green-600 hover:bg-tg-green-500 text-white font-medium rounded-lg transition cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+</div>

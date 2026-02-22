@@ -1,0 +1,53 @@
+<div>
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-white">Compute Nodes</h1>
+    <div class="flex items-center space-x-2">
+      <%= link_to "Green Only", compute_nodes_path(green: "true"), class: "px-3 py-1 text-xs rounded-full #{params[:green] == 'true' ? 'bg-tg-green-600 text-white' : 'bg-tg-dark-700 text-gray-400 hover:bg-tg-dark-600'}" %>
+      <%= link_to "All", compute_nodes_path, class: "px-3 py-1 text-xs rounded-full #{params[:green].blank? && params[:status].blank? ? 'bg-tg-green-600 text-white' : 'bg-tg-dark-700 text-gray-400 hover:bg-tg-dark-600'}" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <% @nodes.each do |node| %>
+      <div class="grid-card bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4 <%= 'border-tg-green-600/30' if node.green_compliant? %>">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center space-x-2">
+            <div class="w-2 h-2 rounded-full <%= node.status == 'idle' ? 'bg-tg-green-400' : node.status == 'busy' ? 'bg-yellow-400' : 'bg-red-400' %>"></div>
+            <%= link_to node.name, compute_node_path(node), class: "text-sm font-bold text-white hover:text-tg-green-400" %>
+          </div>
+          <span class="px-2 py-0.5 text-[10px] bg-tg-dark-700 rounded-full text-gray-400"><%= node.node_type %></span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs text-gray-400">
+          <div>GPU: <span class="text-white"><%= node.gpu_model %></span></div>
+          <div>VRAM: <span class="text-white"><%= node.gpu_vram_mb %>MB</span></div>
+          <div>Region: <span class="text-white"><%= node.region %></span></div>
+          <div>Zone: <span class="text-white"><%= node.grid_zone %></span></div>
+          <div>Utilization: <span class="text-<%= node.gpu_utilization.to_f < 0.5 ? 'tg-green' : node.gpu_utilization.to_f < 0.8 ? 'yellow' : 'red' %>-400"><%= (node.gpu_utilization.to_f * 100).round %>%</span></div>
+          <div>Status: <span class="text-white"><%= node.status %></span></div>
+        </div>
+
+        <div class="mt-3 pt-3 border-t border-gray-700/30 grid grid-cols-3 gap-1 text-center text-xs">
+          <div>
+            <p class="text-gray-600">Carbon</p>
+            <p class="font-bold <%= node.current_carbon_intensity.to_f < 100 ? 'text-tg-green-400' : node.current_carbon_intensity.to_f < 250 ? 'text-yellow-400' : 'text-red-400' %>"><%= node.current_carbon_intensity&.round(0) || '—' %></p>
+          </div>
+          <div>
+            <p class="text-gray-600">Renewable</p>
+            <p class="font-bold text-tg-green-400"><%= node.renewable_pct&.round(0) || '—' %>%</p>
+          </div>
+          <div>
+            <p class="text-gray-600">Cost</p>
+            <p class="font-bold text-blue-400">€<%= node.hourly_cost %>/h</p>
+          </div>
+        </div>
+
+        <% if node.green_compliant? %>
+          <div class="mt-2 text-center">
+            <span class="text-[10px] text-tg-green-400">✓ Green Compliant</span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

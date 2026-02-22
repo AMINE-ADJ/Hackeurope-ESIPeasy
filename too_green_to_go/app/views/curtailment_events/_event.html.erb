@@ -1,0 +1,9 @@
+<% e = local_assigns[:event] || curtailment_event %>
+<div id="curtailment_event_<%= e.id %>" class="bg-red-900/20 border border-red-700/30 rounded-lg p-3 slide-in">
+  <div class="flex items-center justify-between mb-1">
+    <span class="text-xs font-bold text-<%= e.severity == 'critical' ? 'red' : 'yellow' %>-400"><%= e.severity.upcase %> — <%= e.grid_zone %></span>
+    <span class="text-[10px] text-gray-500">just now</span>
+  </div>
+  <p class="text-xs text-gray-400"><%= e.curtailment_mw.round %>MW curtailed</p>
+  <p class="text-[10px] text-tg-green-500 mt-1">€<%= e.potential_savings_eur.round %> potential savings</p>
+</div>

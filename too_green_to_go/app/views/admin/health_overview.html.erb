@@ -1,0 +1,100 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-white">🩺 Node Health Overview</h1>
+    <%= link_to "← Admin Dashboard", admin_dashboard_path, class: "text-sm text-tg-green-500 hover:text-tg-green-400" %>
+  </div>
+
+  <!-- Health Summary -->
+  <div class="grid grid-cols-4 gap-4">
+    <% %w[healthy degraded critical offline].each do |status| %>
+      <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+        <p class="text-xs text-gray-500 uppercase"><%= status %></p>
+        <p class="text-2xl font-bold mt-1
+          <%= status == 'healthy' ? 'text-tg-green-400' :
+              status == 'degraded' ? 'text-yellow-400' :
+              status == 'critical' ? 'text-red-400' : 'text-gray-400' %>">
+          <%= @nodes.where(health_status: status).count %>
+        </p>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Nodes Table -->
+  <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-700/50">
+      <h2 class="text-sm font-semibold text-gray-300">All Nodes</h2>
+    </div>
+    <table class="w-full text-sm">
+      <thead class="text-[10px] text-gray-500 uppercase bg-tg-dark-700/50">
+        <tr>
+          <th class="px-4 py-2 text-left">Node</th>
+          <th class="px-4 py-2 text-left">GPU</th>
+          <th class="px-4 py-2 text-left">Zone</th>
+          <th class="px-4 py-2 text-center">Health</th>
+          <th class="px-4 py-2 text-center">Utilization</th>
+          <th class="px-4 py-2 text-center">Temp</th>
+          <th class="px-4 py-2 text-center">Last Check</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-700/30">
+        <% @nodes.each do |node| %>
+          <% last_check = node.health_checks.order(created_at: :desc).first %>
+          <tr class="hover:bg-tg-dark-700/30">
+            <td class="px-4 py-2">
+              <div class="flex items-center space-x-2">
+                <div class="w-2 h-2 rounded-full
+                  <%= node.health_status == 'healthy' ? 'bg-tg-green-400' :
+                      node.health_status == 'degraded' ? 'bg-yellow-400' :
+                      node.health_status == 'critical' ? 'bg-red-400 pulse-green' : 'bg-gray-400' %>">
+                </div>
+                <%= link_to node.name, compute_node_path(node), class: "text-white hover:text-tg-green-400 font-medium" %>
+              </div>
+            </td>
+            <td class="px-4 py-2 text-gray-400"><%= node.gpu_model %></td>
+            <td class="px-4 py-2 text-gray-400"><%= node.grid_zone %></td>
+            <td class="px-4 py-2 text-center">
+              <span class="px-2 py-0.5 text-[10px] rounded-full
+                <%= node.health_status == 'healthy' ? 'bg-tg-green-900/50 text-tg-green-400' :
+                    node.health_status == 'degraded' ? 'bg-yellow-900/50 text-yellow-400' :
+                    node.health_status == 'critical' ? 'bg-red-900/50 text-red-400' : 'bg-gray-900/50 text-gray-400' %>">
+                <%= node.health_status&.upcase || 'UNKNOWN' %>
+              </span>
+            </td>
+            <td class="px-4 py-2 text-center text-gray-300"><%= (node.gpu_utilization.to_f * 100).round %>%</td>
+            <td class="px-4 py-2 text-center text-<%= (last_check&.gpu_temp_celsius || 0) > 85 ? 'red' : (last_check&.gpu_temp_celsius || 0) > 70 ? 'yellow' : 'tg-green' %>-400">
+              <%= last_check&.gpu_temp_celsius ? "#{last_check.gpu_temp_celsius}°C" : '—' %>
+            </td>
+            <td class="px-4 py-2 text-center text-gray-500 text-[10px]">
+              <%= last_check ? time_ago_in_words(last_check.created_at) + " ago" : "Never" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Recent Health Checks -->
+  <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-700/50">
+      <h2 class="text-sm font-semibold text-gray-300">Recent Health Checks</h2>
+    </div>
+    <div class="divide-y divide-gray-700/30 max-h-64 overflow-y-auto">
+      <% @recent_checks.each do |check| %>
+        <div class="px-4 py-2 flex items-center justify-between text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="<%= check.status == 'healthy' ? 'text-tg-green-400' : check.status == 'degraded' ? 'text-yellow-400' : 'text-red-400' %>">
+              <%= check.status == 'healthy' ? '✓' : check.status == 'degraded' ? '⚠' : '✗' %>
+            </span>
+            <span class="text-white"><%= check.compute_node&.name %></span>
+          </div>
+          <div class="text-gray-500">
+            <span>GPU: <%= check.gpu_temp_celsius %>°C</span> •
+            <span>Mem: <%= (check.memory_utilization.to_f * 100).round %>%</span> •
+            <span>Errs: <%= check.gpu_errors_detected ? 'Yes' : '0' %></span> •
+            <span><%= check.created_at.strftime("%H:%M:%S") %></span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,155 @@
+<div class="max-w-3xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-white">Hardware Onboarding — <%= @organization.name %></h1>
+    <p class="text-gray-500 text-sm mt-1">Register GPU hardware for this provider. Each node will be automatically benchmarked and MIG-sliced if applicable.</p>
+  </div>
+
+  <!-- Steps -->
+  <div class="flex items-center space-x-4 mb-8">
+    <div class="flex items-center space-x-2">
+      <div class="w-8 h-8 bg-tg-green-600 rounded-full flex items-center justify-center text-white text-sm font-bold">1</div>
+      <span class="text-sm text-tg-green-400 font-medium">Register Provider ✓</span>
+    </div>
+    <div class="flex-1 h-px bg-tg-green-600"></div>
+    <div class="flex items-center space-x-2">
+      <div class="w-8 h-8 bg-tg-green-600 rounded-full flex items-center justify-center text-white text-sm font-bold">2</div>
+      <span class="text-sm text-white font-medium">Register Hardware</span>
+    </div>
+    <div class="flex-1 h-px bg-gray-700"></div>
+    <div class="flex items-center space-x-2">
+      <div class="w-8 h-8 bg-tg-dark-700 border border-gray-600 rounded-full flex items-center justify-center text-gray-400 text-sm font-bold">3</div>
+      <span class="text-sm text-gray-400">Verify & Go Live</span>
+    </div>
+  </div>
+
+  <!-- Existing Nodes -->
+  <% existing_nodes = @organization.compute_nodes %>
+  <% if existing_nodes.any? %>
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden mb-6">
+      <div class="px-4 py-3 border-b border-gray-700/50">
+        <h2 class="text-sm font-semibold text-gray-300">Already Registered (<%= existing_nodes.count %>)</h2>
+      </div>
+      <div class="divide-y divide-gray-700/30">
+        <% existing_nodes.each do |node| %>
+          <div class="px-4 py-2 flex items-center justify-between text-sm">
+            <span class="text-white"><%= node.name %> — <%= node.gpu_model %></span>
+            <span class="text-tg-green-400 text-xs">✓ Registered</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Register New Hardware -->
+  <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-6">
+    <h2 class="text-lg font-bold text-white mb-4">Register New GPU Node</h2>
+
+    <%= form_with(model: @node, url: register_hardware_provider_path(@organization), method: :post, class: "space-y-4") do |form| %>
+      <% if @node.errors.any? %>
+        <div class="bg-red-900/50 border border-red-700 text-red-300 p-3 rounded-lg text-sm">
+          <% @node.errors.full_messages.each do |msg| %>
+            <p><%= msg %></p>
+          <% end %>
+        </div>
+      <% end %>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <%= form.label :name, "Node Name", class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.text_field :name, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm", placeholder: "gpu-node-paris-01" %>
+        </div>
+        <div>
+          <%= form.label :gpu_model, "GPU Model", class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.select :gpu_model, [
+            ["NVIDIA H100 80GB", "H100"],
+            ["NVIDIA A100 80GB", "A100"],
+            ["NVIDIA RTX 4090 24GB", "RTX 4090"],
+            ["NVIDIA RTX 3090 24GB", "RTX 3090"],
+            ["NVIDIA RTX 3080 10GB", "RTX 3080"],
+            ["NVIDIA A6000 48GB", "A6000"],
+            ["AMD MI300X 192GB", "MI300X"]
+          ], {}, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <%= form.label :gpu_vram_mb, "VRAM (MB)", class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.number_field :gpu_vram_mb, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm", placeholder: "81920" %>
+        </div>
+        <div>
+          <%= form.label :region, "Region", class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.select :region, %w[eu-west eu-north eu-central us-east us-west asia-pacific], {}, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <%= form.label :grid_zone, "Grid Zone", class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.select :grid_zone, %w[FR DE DK-West NL ES SE NO FI PT], {}, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+        </div>
+        <div>
+          <%= form.label :energy_provider, "Energy Provider", class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.text_field :energy_provider, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm", placeholder: "EDF, Vattenfall..." %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <%= form.label :cooling_type, "Cooling Type", class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.select :cooling_type, [["Air Cooling", "air"], ["Liquid Cooling", "liquid"], ["Immersion", "immersion"], ["Waste Heat Recycling", "waste_heat"]], {}, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+        </div>
+        <div>
+          <%= form.label :pue_ratio, "PUE Ratio", class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.number_field :pue_ratio, step: 0.01, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm", placeholder: "1.2" %>
+        </div>
+        <div>
+          <%= form.label :energy_source_type, "Energy Source", class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.select :energy_source_type, [["Grid Mix", "grid_mix"], ["100% Renewable", "renewable"], ["Waste Heat", "waste_heat"], ["Nuclear", "nuclear"]], {}, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <%= form.label :latitude, class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.number_field :latitude, step: 0.0001, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm", placeholder: "48.8566" %>
+        </div>
+        <div>
+          <%= form.label :longitude, class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.number_field :longitude, step: 0.0001, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm", placeholder: "2.3522" %>
+        </div>
+      </div>
+
+      <!-- MIG Settings -->
+      <div class="p-4 bg-indigo-900/10 rounded-lg border border-indigo-700/30">
+        <p class="text-sm text-indigo-400 font-medium mb-3">🔪 GPU Slicing (MIG)</p>
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2">
+            <%= form.check_box :mig_enabled, class: "rounded bg-tg-dark-700 border-gray-600 text-indigo-500" %>
+            <%= form.label :mig_enabled, "Enable MIG Partitioning", class: "text-sm text-gray-400" %>
+          </div>
+          <div>
+            <%= form.label :mig_max_slices, "Max Slices", class: "text-sm text-gray-400 mr-2" %>
+            <%= form.number_field :mig_max_slices, value: 7, class: "w-20 bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+          </div>
+        </div>
+        <p class="text-[10px] text-gray-600 mt-2">MIG allows splitting a single GPU into isolated partitions. Ideal for H100/A100 with <70% utilization.</p>
+      </div>
+
+      <div>
+        <%= form.label :solana_wallet_address, "Solana Wallet (for payouts)", class: "block text-sm text-gray-400 mb-1" %>
+        <%= form.text_field :solana_wallet_address, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm", placeholder: "Optional — Solana wallet for green credential NFTs" %>
+      </div>
+
+      <div class="pt-4">
+        <%= form.submit "Register & Benchmark Hardware", class: "w-full px-4 py-2 bg-tg-green-600 hover:bg-tg-green-500 text-white font-medium rounded-lg transition cursor-pointer" %>
+      </div>
+    <% end %>
+
+    <% if existing_nodes.any? && !@organization.onboarding_completed? %>
+      <div class="mt-4 pt-4 border-t border-gray-700/30 text-center">
+        <%= button_to "✓ Complete Onboarding & Go Live", onboard_complete_provider_path(@organization), method: :post, class: "px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition" %>
+      </div>
+    <% end %>
+  </div>
+</div>

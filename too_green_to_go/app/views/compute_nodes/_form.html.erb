@@ -1,0 +1,74 @@
+<%= form_with(model: node, class: "space-y-6") do |f| %>
+  <% if node.errors.any? %>
+    <div class="bg-red-900/50 border border-red-500 rounded-lg p-4">
+      <h3 class="text-red-300 font-bold mb-2"><%= pluralize(node.errors.count, "error") %> prevented saving:</h3>
+      <ul class="list-disc list-inside text-red-400 text-sm">
+        <% node.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+      <%= f.label :organization_id, "Organization", class: "block text-sm font-medium text-gray-300 mb-1" %>
+      <%= f.collection_select :organization_id, organizations, :id, :name, { prompt: "Select..." }, class: "w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white" %>
+    </div>
+
+    <div>
+      <%= f.label :name, class: "block text-sm font-medium text-gray-300 mb-1" %>
+      <%= f.text_field :name, class: "w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white", placeholder: "gpu-node-01" %>
+    </div>
+
+    <div>
+      <%= f.label :node_type, "Type", class: "block text-sm font-medium text-gray-300 mb-1" %>
+      <%= f.select :node_type, [["Datacenter", "datacenter"], ["Gamer (B2C)", "gamer"], ["Edge", "edge"]], {}, class: "w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white" %>
+    </div>
+
+    <div>
+      <%= f.label :gpu_model, "GPU Model", class: "block text-sm font-medium text-gray-300 mb-1" %>
+      <%= f.select :gpu_model, ["H100", "A100", "RTX 4090", "RTX 4080", "RTX 3090", "RTX 3080"], { prompt: "Select GPU" }, class: "w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white" %>
+    </div>
+
+    <div>
+      <%= f.label :gpu_vram_mb, "VRAM (MB)", class: "block text-sm font-medium text-gray-300 mb-1" %>
+      <%= f.number_field :gpu_vram_mb, class: "w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white", placeholder: "81920" %>
+    </div>
+
+    <div>
+      <%= f.label :grid_zone, "Grid Zone", class: "block text-sm font-medium text-gray-300 mb-1" %>
+      <%= f.select :grid_zone, %w[FR DE ES PT NL BE IT GB US-CAL-CISO US-NY-NYIS US-TEX-ERCO], { prompt: "Select zone" }, class: "w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white" %>
+    </div>
+
+    <div>
+      <%= f.label :region, class: "block text-sm font-medium text-gray-300 mb-1" %>
+      <%= f.text_field :region, class: "w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white", placeholder: "eu-west-3" %>
+    </div>
+
+    <div>
+      <%= f.label :energy_provider, class: "block text-sm font-medium text-gray-300 mb-1" %>
+      <%= f.text_field :energy_provider, class: "w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white", placeholder: "EDF" %>
+    </div>
+
+    <div>
+      <%= f.label :latitude, class: "block text-sm font-medium text-gray-300 mb-1" %>
+      <%= f.number_field :latitude, step: 0.0001, class: "w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white" %>
+    </div>
+
+    <div>
+      <%= f.label :longitude, class: "block text-sm font-medium text-gray-300 mb-1" %>
+      <%= f.number_field :longitude, step: 0.0001, class: "w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white" %>
+    </div>
+
+    <div class="md:col-span-2">
+      <%= f.label :solana_wallet_address, "Solana Wallet (B2C payouts)", class: "block text-sm font-medium text-gray-300 mb-1" %>
+      <%= f.text_field :solana_wallet_address, class: "w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono text-sm", placeholder: "Optional — for gamer GPU payout" %>
+    </div>
+  </div>
+
+  <div class="flex gap-4 pt-4">
+    <%= f.submit class: "px-6 py-3 bg-tg-green text-black font-bold rounded-lg hover:bg-green-300 transition cursor-pointer" %>
+    <%= link_to "Cancel", compute_nodes_path, class: "px-6 py-3 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition" %>
+  </div>
+<% end %>

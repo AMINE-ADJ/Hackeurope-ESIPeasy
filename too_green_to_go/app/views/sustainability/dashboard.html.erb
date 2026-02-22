@@ -1,0 +1,161 @@
+<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-white">🌍 Sustainability & Impact Report</h1>
+
+  <!-- Impact Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-tg-dark-800 rounded-xl p-5 border border-tg-green-700/30">
+      <p class="text-xs text-tg-green-600 uppercase tracking-wide">Total CO₂ Saved</p>
+      <p class="text-3xl font-bold text-tg-green-400 mt-1"><%= @impact[:total_carbon_saved_kg] %></p>
+      <p class="text-xs text-gray-500">kg CO₂</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-5 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">Green Workloads</p>
+      <p class="text-3xl font-bold text-tg-green-400 mt-1"><%= @impact[:green_workloads_pct] %>%</p>
+      <p class="text-xs text-gray-500">of all completed</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-5 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">100% Recycled</p>
+      <p class="text-3xl font-bold text-tg-green-400 mt-1"><%= @impact[:recycled_workloads_pct] %>%</p>
+      <p class="text-xs text-gray-500">energy recycler tier</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-5 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">Avg Renewable</p>
+      <p class="text-3xl font-bold text-tg-green-400 mt-1"><%= @impact[:avg_renewable_pct] %>%</p>
+      <p class="text-xs text-gray-500">across routing decisions</p>
+    </div>
+  </div>
+
+  <!-- Second row stats -->
+  <div class="grid grid-cols-4 gap-4">
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase">Total Workloads</p>
+      <p class="text-2xl font-bold text-white mt-1"><%= @impact[:total_workloads] %></p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase">Avg CO₂/Workload</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1"><%= @impact[:avg_carbon_per_workload] %> kg</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase">Reroutes</p>
+      <p class="text-2xl font-bold text-yellow-400 mt-1"><%= @impact[:total_reroutes] %></p>
+      <p class="text-[10px] text-gray-500">green rerouting events</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase">Migrations</p>
+      <p class="text-2xl font-bold text-blue-400 mt-1"><%= @impact[:total_migrations] %></p>
+      <p class="text-[10px] text-gray-500">live migrations</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Carbon by Zone -->
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+      <h2 class="text-sm font-semibold text-gray-300 mb-4">🗺️ CO₂ Saved by Grid Zone</h2>
+      <div class="space-y-2">
+        <% max_zone = @carbon_by_zone.values.max || 1 %>
+        <% @carbon_by_zone.sort_by { |_, v| -v }.each do |zone, kg| %>
+          <div class="flex items-center space-x-3">
+            <span class="w-16 text-sm font-mono text-white"><%= zone %></span>
+            <div class="flex-1 bg-tg-dark-700 rounded-full h-4 overflow-hidden">
+              <div class="bg-tg-green-500/70 h-4 rounded-full" style="width: <%= [(kg / max_zone.to_f * 100), 2].max %>%"></div>
+            </div>
+            <span class="text-sm font-bold text-tg-green-400 w-24 text-right"><%= kg %> kg</span>
+          </div>
+        <% end %>
+        <% if @carbon_by_zone.empty? %>
+          <p class="text-gray-500 text-sm text-center py-4">No data yet</p>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Carbon by Broker Tier -->
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+      <h2 class="text-sm font-semibold text-gray-300 mb-4">🏷️ CO₂ Saved by Broker Tier</h2>
+      <div class="space-y-3">
+        <% tier_colors = { "tier_1_recycler" => "tg-green", "tier_2_b2b_surplus" => "blue", "tier_3_b2c_green" => "purple", "admin_override" => "yellow" } %>
+        <% @carbon_by_tier.sort_by { |_, v| -v }.each do |tier, kg| %>
+          <div class="bg-tg-dark-700/50 rounded-lg p-3 flex items-center justify-between">
+            <div>
+              <p class="text-sm font-bold text-white"><%= tier.gsub('_', ' ').titleize %></p>
+              <p class="text-[10px] text-gray-500">
+                <% if tier == "tier_1_recycler" %>♻️ Energy recycler nodes
+                <% elsif tier == "tier_2_b2b_surplus" %>🏢 B2B surplus capacity
+                <% elsif tier == "tier_3_b2c_green" %>🎮 B2C green-gated
+                <% else %><%= tier.humanize %>
+                <% end %>
+              </p>
+            </div>
+            <p class="text-lg font-bold text-<%= tier_colors[tier] || 'gray' %>-400"><%= kg %> kg</p>
+          </div>
+        <% end %>
+        <% if @carbon_by_tier.empty? %>
+          <p class="text-gray-500 text-sm text-center py-4">No data yet</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Provider Leaderboard -->
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-700/50">
+        <h2 class="text-sm font-semibold text-gray-300">🏆 Provider Leaderboard — Carbon Impact</h2>
+      </div>
+      <div class="divide-y divide-gray-700/30">
+        <% @provider_leaderboard.each_with_index do |org, idx| %>
+          <div class="px-4 py-3 flex items-center justify-between hover:bg-tg-dark-700/30">
+            <div class="flex items-center space-x-3">
+              <span class="text-lg font-bold <%= idx < 3 ? 'text-tg-green-400' : 'text-gray-500' %>">
+                #<%= idx + 1 %>
+              </span>
+              <div>
+                <p class="text-sm text-white font-medium"><%= org.name %></p>
+                <div class="flex items-center space-x-2 text-[10px] text-gray-500">
+                  <% if org.org_type == "energy_recycler" %>
+                    <span class="px-1.5 py-0.5 bg-tg-green-900/50 text-tg-green-400 rounded">♻️ Recycler</span>
+                  <% elsif org.org_type == "datacenter" %>
+                    <span class="px-1.5 py-0.5 bg-blue-900/50 text-blue-400 rounded">🏢 DC</span>
+                  <% elsif org.org_type == "gamer" %>
+                    <span class="px-1.5 py-0.5 bg-purple-900/50 text-purple-400 rounded">🎮 Gamer</span>
+                  <% end %>
+                  <span><%= org.compute_nodes.count %> nodes</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-bold text-tg-green-400"><%= (org.try(:total_saved).to_f / 1000).round(2) %> kg</p>
+              <p class="text-[10px] text-gray-500">CO₂ saved</p>
+            </div>
+          </div>
+        <% end %>
+        <% if @provider_leaderboard.empty? %>
+          <div class="px-4 py-8 text-center text-gray-500 text-sm">No provider data yet</div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Compliance Summary -->
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+      <h2 class="text-sm font-semibold text-gray-300 mb-4">🌿 Zone Compliance Summary</h2>
+      <div class="space-y-2">
+        <% @compliance_summary.each do |zone, data| %>
+          <div class="bg-tg-dark-700/50 rounded-lg p-3 flex items-center justify-between">
+            <div>
+              <span class="text-sm font-bold text-white"><%= zone %></span>
+              <div class="flex items-center space-x-2 mt-1 text-[10px]">
+                <span class="text-gray-500">B2C: <span class="<%= data[:b2c_gate_open] ? 'text-tg-green-400' : 'text-red-400' %>"><%= data[:b2c_gate_open] ? '✓ Open' : '✗ Closed' %></span></span>
+                <span class="text-gray-500">Renewable: <span class="text-white"><%= data[:renewable_pct]&.round(0) || 0 %>%</span></span>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 text-[10px] rounded-full
+              <%= data[:green_status] == 'green' ? 'bg-tg-green-900/50 text-tg-green-400' :
+                  data[:green_status] == 'mixed' ? 'bg-yellow-900/50 text-yellow-400' :
+                  'bg-red-900/50 text-red-400' %>">
+              <%= data[:green_status]&.upcase || 'UNKNOWN' %>
+            </span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

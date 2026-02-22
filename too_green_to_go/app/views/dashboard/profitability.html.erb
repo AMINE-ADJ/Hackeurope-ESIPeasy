@@ -1,0 +1,67 @@
+<div>
+  <h1 class="text-2xl font-bold text-white mb-6">💰 Profitability Report (Paid.ai)</h1>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4 text-center">
+      <p class="text-xs text-gray-500 uppercase">Total Revenue</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1">€<%= @profitability[:total_revenue_eur] %></p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4 text-center">
+      <p class="text-xs text-gray-500 uppercase">Platform Fees (15%)</p>
+      <p class="text-2xl font-bold text-blue-400 mt-1">€<%= @profitability[:total_platform_fees_eur] %></p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4 text-center">
+      <p class="text-xs text-gray-500 uppercase">Carbon Saved</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1"><%= @profitability[:total_carbon_saved_kg] %> kg</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4 text-center">
+      <p class="text-xs text-gray-500 uppercase">Reroute Rate</p>
+      <p class="text-2xl font-bold text-yellow-400 mt-1"><%= @profitability[:reroute_rate] %>%</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+      <h2 class="text-sm font-semibold text-gray-300 mb-3">Metrics</h2>
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between py-1 border-b border-gray-700/30">
+          <span class="text-gray-500">Total Workloads</span>
+          <span class="text-white"><%= @profitability[:total_workloads] %></span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-gray-700/30">
+          <span class="text-gray-500">Avg Routing Score</span>
+          <span class="text-white"><%= @profitability[:avg_routing_score] %></span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-gray-700/30">
+          <span class="text-gray-500">Total Reroutes</span>
+          <span class="text-yellow-400"><%= @profitability[:total_reroutes] %></span>
+        </div>
+        <div class="flex justify-between py-1">
+          <span class="text-gray-500">Cost per kg CO₂ Saved</span>
+          <span class="text-tg-green-400">€<%= @profitability[:cost_per_kg_carbon_saved] %></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+      <h2 class="text-sm font-semibold text-gray-300 mb-3">Carbon Saved by Zone</h2>
+      <div class="space-y-2">
+        <% @carbon_by_zone.each do |zone, grams| %>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-400 font-mono"><%= zone %></span>
+            <div class="flex items-center space-x-2">
+              <div class="w-32 bg-tg-dark-700 rounded-full h-2">
+                <% max = [@carbon_by_zone.values.max, 1].max %>
+                <div class="bg-tg-green-400 h-2 rounded-full" style="width: <%= (grams / max.to_f * 100).round %>%"></div>
+              </div>
+              <span class="text-tg-green-400 font-medium"><%= (grams / 1000.0).round(2) %> kg</span>
+            </div>
+          </div>
+        <% end %>
+        <% if @carbon_by_zone.empty? %>
+          <p class="text-gray-500 text-sm text-center py-4">No data yet</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

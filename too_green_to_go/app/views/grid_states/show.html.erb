@@ -1,0 +1,76 @@
+<div class="max-w-4xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-3xl font-bold text-white">Grid State Detail</h1>
+    <%= link_to "← Grid History", grid_states_path, class: "text-tg-green hover:underline" %>
+  </div>
+
+  <div class="bg-gray-800 rounded-xl p-8">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-2xl font-bold text-white"><%= @grid_state.zone %></h2>
+        <p class="text-gray-400"><%= @grid_state.recorded_at&.strftime("%Y-%m-%d %H:%M:%S %Z") %></p>
+      </div>
+      <% if @grid_state.surplus_detected? %>
+        <span class="px-3 py-1 bg-green-900 text-green-300 text-sm font-bold rounded-full">SURPLUS</span>
+      <% end %>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-gray-900 rounded-lg p-4 text-center">
+        <%
+          ci = @grid_state.carbon_intensity.to_f
+          ci_color = ci < 100 ? "green" : ci < 250 ? "yellow" : "red"
+        %>
+        <div class="text-3xl font-bold text-<%= ci_color %>-400"><%= ci.round(1) %></div>
+        <div class="text-gray-500 text-sm mt-1">gCO₂/kWh</div>
+      </div>
+      <div class="bg-gray-900 rounded-lg p-4 text-center">
+        <div class="text-3xl font-bold text-emerald-400"><%= @grid_state.renewable_pct&.round(1) %>%</div>
+        <div class="text-gray-500 text-sm mt-1">Renewable</div>
+      </div>
+      <div class="bg-gray-900 rounded-lg p-4 text-center">
+        <div class="text-3xl font-bold text-blue-400">€<%= @grid_state.energy_price&.round(2) %></div>
+        <div class="text-gray-500 text-sm mt-1">/MWh</div>
+      </div>
+      <div class="bg-gray-900 rounded-lg p-4 text-center">
+        <div class="text-3xl font-bold text-yellow-400"><%= @grid_state.curtailment_mw&.round || 0 %></div>
+        <div class="text-gray-500 text-sm mt-1">MW Curtailed</div>
+      </div>
+    </div>
+
+    <!-- Energy mix breakdown -->
+    <h3 class="text-lg font-bold text-white mb-4">Energy Mix</h3>
+    <% mix = @grid_state.energy_mix || {} %>
+    <div class="space-y-3">
+      <% mix.each do |source, pct| %>
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-gray-300 capitalize"><%= source %></span>
+            <span class="text-gray-400 font-mono"><%= pct.round(1) %>%</span>
+          </div>
+          <div class="h-3 bg-gray-700 rounded-full overflow-hidden">
+            <%
+              bar_color = case source.to_s
+              when "solar" then "bg-yellow-400"
+              when "wind" then "bg-cyan-400"
+              when "nuclear" then "bg-purple-400"
+              when "hydro" then "bg-blue-400"
+              when "gas" then "bg-orange-400"
+              when "coal" then "bg-gray-500"
+              else "bg-gray-400"
+              end
+            %>
+            <div class="h-full <%= bar_color %> rounded-full" style="width: <%= pct %>%"></div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Metadata -->
+    <div class="mt-8 border-t border-gray-700 pt-4 text-sm text-gray-500">
+      <p>Dominant source: <span class="text-gray-300"><%= @grid_state.dominant_source %></span></p>
+      <p>Data source: <span class="text-gray-300"><%= @grid_state.data_source %></span></p>
+      <p>Demand MW: <span class="text-gray-300"><%= @grid_state.demand_mw&.round %></span></p>
+    </div>
+  </div>
+</div>

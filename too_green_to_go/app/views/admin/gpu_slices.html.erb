@@ -1,0 +1,77 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-white">🔪 GPU Slices (MIG Management)</h1>
+    <div class="flex items-center space-x-2">
+      <%= button_to "🔄 Auto-Manage Slices", admin_manage_slices_path, method: :post, class: "px-3 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition font-medium" %>
+      <%= link_to "← Admin Dashboard", admin_dashboard_path, class: "text-sm text-tg-green-500 hover:text-tg-green-400" %>
+    </div>
+  </div>
+
+  <!-- Slice Summary -->
+  <div class="grid grid-cols-4 gap-4">
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase">Total Slices</p>
+      <p class="text-2xl font-bold text-white mt-1"><%= @slices.count %></p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase">Available</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1"><%= @slices.select { |s| s.status == 'available' }.count %></p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase">Allocated</p>
+      <p class="text-2xl font-bold text-blue-400 mt-1"><%= @slices.select { |s| s.status == 'allocated' }.count %></p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase">MIG Nodes</p>
+      <p class="text-2xl font-bold text-indigo-400 mt-1"><%= @nodes_with_slices.count %></p>
+    </div>
+  </div>
+
+  <!-- Nodes with Slices -->
+  <% @nodes_with_slices.each do |node| %>
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-700/50 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-2 h-2 rounded-full <%= node.health_status == 'healthy' ? 'bg-tg-green-400' : 'bg-yellow-400' %>"></div>
+          <h2 class="text-sm font-semibold text-white"><%= node.name %></h2>
+          <span class="text-xs text-gray-500"><%= node.gpu_model %> • <%= node.gpu_vram_mb %>MB • <%= node.grid_zone %></span>
+        </div>
+        <div class="text-xs text-gray-500">
+          Utilization: <span class="text-white font-bold"><%= (node.gpu_utilization.to_f * 100).round %>%</span>
+          • Slices: <span class="text-white font-bold"><%= node.gpu_slices.count %></span>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 p-4">
+        <% node.gpu_slices.order(:slice_profile).each do |slice| %>
+          <div class="bg-tg-dark-700/50 rounded-lg p-3 border border-gray-600/30
+            <%= slice.status == 'available' ? 'border-tg-green-500/30' : 'border-blue-500/30' %>">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-white"><%= slice.slice_profile %></span>
+              <span class="px-1.5 py-0.5 text-[10px] rounded-full
+                <%= slice.status == 'available' ? 'bg-tg-green-900/50 text-tg-green-400' :
+                    slice.status == 'allocated' ? 'bg-blue-900/50 text-blue-400' :
+                    'bg-gray-900/50 text-gray-400' %>">
+                <%= slice.status %>
+              </span>
+            </div>
+            <div class="text-[10px] text-gray-500 space-y-0.5">
+              <p>VRAM: <span class="text-white"><%= slice.vram_mb %>MB</span></p>
+              <p>Compute: <span class="text-white"><%= slice.compute_units %> units</span></p>
+              <p>ID: <span class="text-gray-400 font-mono"><%= slice.slice_id&.first(8) %>...</span></p>
+              <% if slice.workload %>
+                <p class="text-blue-400 mt-1">→ <%= slice.workload.name %></p>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <% if @nodes_with_slices.empty? %>
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-12 text-center">
+      <p class="text-gray-500 text-lg">No MIG-capable nodes found.</p>
+      <p class="text-gray-600 text-sm mt-2">Register H100/A100 nodes with MIG enabled to use GPU slicing.</p>
+    </div>
+  <% end %>
+</div>

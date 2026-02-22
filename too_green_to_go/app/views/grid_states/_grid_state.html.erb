@@ -1,0 +1,6 @@
+<div id="grid_state_<%= grid_state.id %>" class="bg-gray-800 rounded p-2 text-xs border border-gray-700">
+  <span class="font-bold text-gray-200"><%= grid_state.grid_zone %></span>
+  <span class="text-gray-400"><%= grid_state.recorded_at&.strftime("%H:%M") %></span>
+  <span class="text-<%= grid_state.carbon_intensity.to_f < 150 ? 'green' : 'yellow' %>-400 ml-2"><%= grid_state.carbon_intensity&.round(1) %> gCO₂</span>
+  <span class="text-emerald-400 ml-2"><%= grid_state.renewable_pct&.round %>%</span>
+</div>

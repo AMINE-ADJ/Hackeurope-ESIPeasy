@@ -1,0 +1,173 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-white">🛡️ Admin — Crusoe Override Dashboard</h1>
+    <div class="flex items-center space-x-2">
+      <%= button_to "💰 Settle Payments", admin_settle_path, method: :post, class: "px-3 py-2 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition font-medium" %>
+      <%= link_to "🩺 Health", admin_health_path, class: "px-3 py-2 text-xs bg-tg-dark-700 hover:bg-tg-dark-600 text-gray-300 rounded-lg transition" %>
+      <%= link_to "🔪 GPU Slices", admin_gpu_slices_path, class: "px-3 py-2 text-xs bg-tg-dark-700 hover:bg-tg-dark-600 text-gray-300 rounded-lg transition" %>
+    </div>
+  </div>
+
+  <!-- Platform Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Providers</p>
+      <p class="text-2xl font-bold text-white mt-1"><%= @stats[:total_providers] %></p>
+      <p class="text-[10px] text-tg-green-500"><%= @stats[:verified_providers] %> verified</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Nodes</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1"><%= @stats[:total_nodes] %></p>
+      <p class="text-[10px] text-tg-green-500"><%= @stats[:healthy_nodes] %> healthy</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-[10px] text-gray-500 uppercase tracking-wide">MIG Nodes</p>
+      <p class="text-2xl font-bold text-indigo-400 mt-1"><%= @stats[:mig_nodes] %></p>
+      <p class="text-[10px] text-indigo-500"><%= @stats[:available_slices] %>/<%= @stats[:total_slices] %> slices free</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Active Workloads</p>
+      <p class="text-2xl font-bold text-blue-400 mt-1"><%= @stats[:active_workloads] %></p>
+      <p class="text-[10px] text-gray-500"><%= @stats[:pending_workloads] %> pending</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Revenue</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1">€<%= @stats[:total_revenue] %></p>
+      <p class="text-[10px] text-yellow-500"><%= @stats[:pending_settlements] %> pending</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-[10px] text-gray-500 uppercase tracking-wide">CO₂ Saved</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1"><%= @stats[:total_carbon_saved_kg] %> kg</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Alerts</p>
+      <p class="text-2xl font-bold text-red-400 mt-1"><%= @stats[:active_curtailments] %></p>
+      <p class="text-[10px] text-red-500">active curtailments</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left: Crusoe Override Panel -->
+    <div class="lg:col-span-2 space-y-4">
+      <!-- Provider Breakdown -->
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+        <h2 class="text-sm font-semibold text-gray-300 mb-3">📊 Provider Breakdown</h2>
+        <div class="grid grid-cols-3 gap-4">
+          <% @providers_by_type.each do |type, count| %>
+            <div class="text-center">
+              <p class="text-2xl font-bold <%= type == 'energy_recycler' ? 'text-tg-green-400' : type == 'datacenter' ? 'text-blue-400' : 'text-purple-400' %>"><%= count %></p>
+              <p class="text-xs text-gray-500"><%= type.humanize %></p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Workloads by Tier -->
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+        <h2 class="text-sm font-semibold text-gray-300 mb-3">🏷️ Workloads by Broker Tier</h2>
+        <div class="grid grid-cols-3 gap-4">
+          <% ["tier_1_recycler", "tier_2_b2b_surplus", "tier_3_b2c_green"].each do |tier| %>
+            <div class="bg-tg-dark-700/50 rounded-lg p-3 text-center">
+              <p class="text-2xl font-bold text-white"><%= @workloads_by_tier[tier] || 0 %></p>
+              <p class="text-[10px] text-gray-500"><%= tier.gsub('_', ' ').titleize %></p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Crusoe Override: Manual Routing -->
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-700/50 bg-yellow-900/10">
+          <h2 class="text-sm font-semibold text-yellow-400">⚡ Crusoe Override — Manual Routing</h2>
+          <p class="text-[10px] text-gray-500 mt-1">Manually assign or reassign workloads to specific compute nodes</p>
+        </div>
+        <div class="p-4">
+          <%= form_with(url: admin_override_routing_path, method: :post, class: "flex items-end space-x-3") do |form| %>
+            <div class="flex-1">
+              <%= form.label :workload_id, "Workload", class: "block text-xs text-gray-400 mb-1" %>
+              <%= form.select :workload_id,
+                Workload.active.order(:name).map { |w| ["#{w.name} (#{w.status})", w.id] },
+                { prompt: "Select workload..." },
+                class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+            </div>
+            <div class="flex-1">
+              <%= form.label :node_id, "Target Node", class: "block text-xs text-gray-400 mb-1" %>
+              <%= form.select :node_id,
+                ComputeNode.available.order(:name).map { |n| ["#{n.name} (#{n.gpu_model}, #{n.grid_zone})", n.id] },
+                { prompt: "Select node..." },
+                class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+            </div>
+            <%= form.submit "Override →", class: "px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white font-medium rounded-lg transition cursor-pointer text-sm" %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Recent Routing Decisions -->
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-700/50">
+          <h2 class="text-sm font-semibold text-gray-300">🧠 Recent Routing Decisions (last 20)</h2>
+        </div>
+        <div class="divide-y divide-gray-700/30 max-h-96 overflow-y-auto">
+          <% @recent_decisions.each do |d| %>
+            <div class="px-4 py-2 flex items-center justify-between text-xs hover:bg-tg-dark-700/30">
+              <div class="flex items-center space-x-2">
+                <span class="<%= d.decision_type == 'initial_route' ? 'text-tg-green-400' : d.decision_type == 'reroute' ? 'text-yellow-400' : 'text-gray-400' %>">
+                  <%= d.decision_type == 'initial_route' ? '🟢' : d.decision_type == 'reroute' ? '🔄' : '⏸️' %>
+                </span>
+                <span class="text-white"><%= d.workload&.name || "—" %></span>
+                <span class="text-gray-500">→</span>
+                <span class="text-tg-green-400"><%= d.compute_node&.name || "—" %></span>
+              </div>
+              <div class="flex items-center space-x-3 text-gray-500">
+                <% if d.broker_tier.present? %>
+                  <span class="px-1.5 py-0.5 bg-tg-dark-700 rounded text-[10px]"><%= d.broker_tier %></span>
+                <% end %>
+                <span>Score: <%= d.score&.round(3) %></span>
+                <span><%= d.created_at.strftime("%H:%M") %></span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Compliance & Quick Actions -->
+    <div class="space-y-4">
+      <!-- Green Compliance -->
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+        <h2 class="text-sm font-semibold text-gray-300 mb-3">🌿 Green Compliance</h2>
+        <div class="space-y-3">
+          <% @compliance_report.each do |zone, data| %>
+            <div class="bg-tg-dark-700/50 rounded-lg p-3">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-bold text-white"><%= zone %></span>
+                <span class="px-2 py-0.5 text-[10px] rounded-full
+                  <%= data[:green_status] == 'green' ? 'bg-tg-green-900/50 text-tg-green-400' :
+                      data[:green_status] == 'mixed' ? 'bg-yellow-900/50 text-yellow-400' :
+                      'bg-red-900/50 text-red-400' %>">
+                  <%= data[:green_status]&.upcase || 'UNKNOWN' %>
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-[10px] text-gray-500">
+                <span>B2C Gate: <span class="<%= data[:b2c_gate_open] ? 'text-tg-green-400' : 'text-red-400' %>"><%= data[:b2c_gate_open] ? 'OPEN' : 'CLOSED' %></span></span>
+                <span>Renewable: <span class="text-white"><%= data[:renewable_pct]&.round(0) || 0 %>%</span></span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+        <h2 class="text-sm font-semibold text-gray-300 mb-3">Quick Links</h2>
+        <div class="space-y-2">
+          <%= link_to "Providers →", providers_path, class: "block text-sm text-tg-green-500 hover:text-tg-green-400" %>
+          <%= link_to "Sustainability Report →", sustainability_dashboard_path, class: "block text-sm text-tg-green-500 hover:text-tg-green-400" %>
+          <%= link_to "Grid Map →", live_map_grid_states_path, class: "block text-sm text-tg-green-500 hover:text-tg-green-400" %>
+          <%= link_to "Workloads →", workloads_path, class: "block text-sm text-tg-green-500 hover:text-tg-green-400" %>
+          <%= link_to "Full Profitability →", dashboard_profitability_path, class: "block text-sm text-tg-green-500 hover:text-tg-green-400" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

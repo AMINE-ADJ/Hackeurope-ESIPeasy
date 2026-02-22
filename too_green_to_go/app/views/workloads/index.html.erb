@@ -1,0 +1,26 @@
+<div>
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-white">All Workloads</h1>
+    <div class="flex items-center space-x-2">
+      <% %w[pending routing running paused completed].each do |status| %>
+        <%= link_to status.capitalize, workloads_path(status: status),
+            class: "px-3 py-1 text-xs rounded-full #{params[:status] == status ? 'bg-tg-green-600 text-white' : 'bg-tg-dark-700 text-gray-400 hover:bg-tg-dark-600'}" %>
+      <% end %>
+      <%= link_to "All", workloads_path, class: "px-3 py-1 text-xs rounded-full #{params[:status].blank? ? 'bg-tg-green-600 text-white' : 'bg-tg-dark-700 text-gray-400 hover:bg-tg-dark-600'}" %>
+    </div>
+  </div>
+
+  <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+    <div id="workloads" class="divide-y divide-gray-700/30">
+      <% @workloads.each do |workload| %>
+        <%= render partial: "workloads/workload_row", locals: { workload: workload } %>
+      <% end %>
+      <% if @workloads.empty? %>
+        <div class="p-12 text-center text-gray-500">
+          <p class="text-lg mb-2">No workloads found</p>
+          <p class="text-sm">Create a workload from the demo controls above.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

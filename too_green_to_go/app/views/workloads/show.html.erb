@@ -1,0 +1,127 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-white"><%= @workload.name || "Workload ##{@workload.id}" %></h1>
+      <div class="flex items-center space-x-3 mt-1">
+        <span class="px-2 py-1 text-xs rounded-full
+          <%= case @workload.status
+              when 'running' then 'bg-tg-green-900/50 text-tg-green-400'
+              when 'pending' then 'bg-gray-700 text-gray-400'
+              when 'paused' then 'bg-yellow-900/50 text-yellow-400'
+              when 'rerouting' then 'bg-yellow-900/50 text-yellow-400'
+              when 'completed' then 'bg-tg-green-900/50 text-tg-green-300'
+              when 'failed' then 'bg-red-900/50 text-red-400'
+              else 'bg-gray-700 text-gray-400'
+              end %>">
+          <%= @workload.status.upcase %>
+        </span>
+        <span class="text-sm text-gray-500"><%= @workload.workload_type %> · <%= @workload.priority %></span>
+        <% if @workload.green_only? %>
+          <span class="text-sm text-tg-green-400">🌿 Green Only</span>
+        <% end %>
+      </div>
+    </div>
+    <div class="flex space-x-2">
+      <% if @workload.status == "pending" %>
+        <%= button_to "Route Now", route_workload_path(@workload), method: :post, class: "px-4 py-2 bg-tg-green-600 hover:bg-tg-green-500 text-white text-sm rounded-lg" %>
+      <% end %>
+      <% if @workload.status == "running" %>
+        <%= button_to "Pause", pause_workload_path(@workload), method: :post, class: "px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white text-sm rounded-lg" %>
+        <%= button_to "Reroute", reroute_workload_path(@workload), method: :post, class: "px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg" %>
+        <%= button_to "Complete", complete_workload_path(@workload), method: :post, class: "px-4 py-2 bg-tg-green-700 hover:bg-tg-green-600 text-white text-sm rounded-lg" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Details -->
+    <div class="lg:col-span-2 space-y-4">
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+        <h2 class="text-sm font-semibold text-gray-300 mb-3">Workload Details</h2>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div><span class="text-gray-500">Organization:</span> <span class="text-white ml-2"><%= @workload.organization&.name %></span></div>
+          <div><span class="text-gray-500">Type:</span> <span class="text-white ml-2"><%= @workload.workload_type %></span></div>
+          <div><span class="text-gray-500">Priority:</span> <span class="text-white ml-2"><%= @workload.priority %></span></div>
+          <div><span class="text-gray-500">Required VRAM:</span> <span class="text-white ml-2"><%= @workload.required_vram_mb || 'Any' %> MB</span></div>
+          <div><span class="text-gray-500">Max Carbon:</span> <span class="text-white ml-2"><%= @workload.max_carbon_intensity || 'No limit' %> gCO₂/kWh</span></div>
+          <div><span class="text-gray-500">Est. Duration:</span> <span class="text-white ml-2"><%= @workload.estimated_duration_hours || '—' %>h</span></div>
+          <div><span class="text-gray-500">Actual Duration:</span> <span class="text-white ml-2"><%= @workload.duration_hours || '—' %>h</span></div>
+          <div><span class="text-gray-500">Est. Cost:</span> <span class="text-blue-400 ml-2">€<%= @workload.estimated_cost %></span></div>
+          <div><span class="text-gray-500">Reroutes:</span> <span class="text-yellow-400 ml-2"><%= @workload.reroute_count %></span></div>
+          <div><span class="text-gray-500">CO₂ Saved:</span> <span class="text-tg-green-400 ml-2"><%= @workload.carbon_saved_grams || 0 %>g</span></div>
+        </div>
+      </div>
+
+      <!-- Assigned Node -->
+      <% if @workload.compute_node %>
+        <div class="bg-tg-dark-800 rounded-xl border border-tg-green-700/30 p-4">
+          <h2 class="text-sm font-semibold text-gray-300 mb-3">🖥️ Assigned Compute Node</h2>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div><span class="text-gray-500">Name:</span> <span class="text-tg-green-400 ml-2"><%= @workload.compute_node.name %></span></div>
+            <div><span class="text-gray-500">GPU:</span> <span class="text-white ml-2"><%= @workload.compute_node.gpu_model %></span></div>
+            <div><span class="text-gray-500">Region:</span> <span class="text-white ml-2"><%= @workload.compute_node.region %></span></div>
+            <div><span class="text-gray-500">Grid Zone:</span> <span class="text-white ml-2"><%= @workload.compute_node.grid_zone %></span></div>
+            <div><span class="text-gray-500">Carbon:</span> <span class="text-<%= @workload.compute_node.current_carbon_intensity.to_f < 100 ? 'tg-green' : 'yellow' %>-400 ml-2"><%= @workload.compute_node.current_carbon_intensity&.round(1) %> gCO₂/kWh</span></div>
+            <div><span class="text-gray-500">Renewable:</span> <span class="text-tg-green-400 ml-2"><%= @workload.compute_node.renewable_pct&.round(1) %>%</span></div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Routing Decision Timeline -->
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+        <h2 class="text-sm font-semibold text-gray-300 mb-3">🧠 Routing Decision Timeline</h2>
+        <div class="space-y-3">
+          <% @routing_decisions.each do |decision| %>
+            <div class="flex items-start space-x-3 text-sm">
+              <div class="flex-shrink-0 mt-1">
+                <% case decision.decision_type
+                   when "initial_route" %><span class="text-tg-green-400">🟢</span><%
+                   when "reroute" %><span class="text-yellow-400">🔄</span><%
+                   when "pause" %><span class="text-yellow-400">⏸️</span><%
+                   when "resume" %><span class="text-tg-green-400">▶️</span><%
+                   end %>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-white font-medium"><%= decision.decision_type.humanize %></span>
+                  <span class="text-xs text-gray-500"><%= decision.created_at.strftime("%H:%M:%S") %></span>
+                </div>
+                <p class="text-gray-400 text-xs mt-0.5">
+                  Node: <span class="text-tg-green-400"><%= decision.compute_node&.name || '—' %></span>
+                  · Score: <%= decision.score&.round(3) %>
+                  · Carbon: <%= decision.carbon_intensity_at_decision&.round(0) %> gCO₂
+                  <% if decision.reason %>· Reason: <span class="text-yellow-400"><%= decision.reason %></span><% end %>
+                </p>
+              </div>
+            </div>
+          <% end %>
+          <% if @routing_decisions.empty? %>
+            <p class="text-gray-500 text-sm">No routing decisions yet.</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar: Transactions -->
+    <div class="space-y-4">
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+        <h2 class="text-sm font-semibold text-gray-300 mb-3">💳 Transactions</h2>
+        <div class="space-y-2">
+          <% @transactions.each do |tx| %>
+            <div class="flex items-center justify-between text-sm">
+              <div>
+                <span class="text-<%= tx.transaction_type == 'charge' ? 'blue' : 'tg-green' %>-400"><%= tx.transaction_type.capitalize %></span>
+                <span class="text-xs text-gray-500 ml-1">(<%= tx.payment_method %>)</span>
+              </div>
+              <span class="text-white font-medium"><%= tx.currency == 'EUR' ? '€' : '' %><%= tx.amount %> <%= tx.currency %></span>
+            </div>
+          <% end %>
+          <% if @transactions.empty? %>
+            <p class="text-gray-500 text-sm">No transactions yet.</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,48 @@
+<div>
+  <h1 class="text-2xl font-bold text-white mb-6"><%= @node.name %></h1>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+      <h2 class="text-sm font-semibold text-gray-300 mb-3">Node Details</h2>
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <div><span class="text-gray-500">Type:</span> <span class="text-white ml-1"><%= @node.node_type %></span></div>
+        <div><span class="text-gray-500">GPU:</span> <span class="text-white ml-1"><%= @node.gpu_model %></span></div>
+        <div><span class="text-gray-500">VRAM:</span> <span class="text-white ml-1"><%= @node.gpu_vram_mb %>MB</span></div>
+        <div><span class="text-gray-500">Region:</span> <span class="text-white ml-1"><%= @node.region %></span></div>
+        <div><span class="text-gray-500">Grid Zone:</span> <span class="text-white ml-1"><%= @node.grid_zone %></span></div>
+        <div><span class="text-gray-500">Provider:</span> <span class="text-white ml-1"><%= @node.energy_provider %></span></div>
+        <div><span class="text-gray-500">Status:</span> <span class="text-white ml-1"><%= @node.status %></span></div>
+        <div><span class="text-gray-500">Utilization:</span> <span class="text-white ml-1"><%= (@node.gpu_utilization.to_f * 100).round %>%</span></div>
+        <div><span class="text-gray-500">Carbon:</span> <span class="text-tg-green-400 ml-1"><%= @node.current_carbon_intensity&.round(1) %> gCO₂/kWh</span></div>
+        <div><span class="text-gray-500">Renewable:</span> <span class="text-tg-green-400 ml-1"><%= @node.renewable_pct&.round(1) %>%</span></div>
+        <div><span class="text-gray-500">Cost:</span> <span class="text-blue-400 ml-1">€<%= @node.hourly_cost %>/h</span></div>
+        <div><span class="text-gray-500">Green:</span> <span class="text-<%= @node.green_compliant? ? 'tg-green' : 'red' %>-400 ml-1"><%= @node.green_compliant? ? '✓ Yes' : '✗ No' %></span></div>
+      </div>
+    </div>
+
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+      <h2 class="text-sm font-semibold text-gray-300 mb-3">Recent Grid History (<%= @node.grid_zone %>)</h2>
+      <div class="space-y-1.5 max-h-60 overflow-y-auto">
+        <% @grid_history.each do |state| %>
+          <div class="flex items-center justify-between text-xs bg-tg-dark-700/30 rounded p-2">
+            <span class="text-gray-500"><%= state.recorded_at.strftime("%H:%M") %></span>
+            <span class="<%= state.carbon_intensity < 100 ? 'text-tg-green-400' : state.carbon_intensity < 250 ? 'text-yellow-400' : 'text-red-400' %>"><%= state.carbon_intensity.round(0) %> gCO₂</span>
+            <span class="text-tg-green-400"><%= state.renewable_pct.round(0) %>%</span>
+            <span class="text-blue-400">€<%= state.energy_price.round(1) %></span>
+            <% if state.surplus_detected? %><span class="text-tg-green-300 text-[10px]">SURPLUS</span><% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+    <h2 class="text-sm font-semibold text-gray-300 mb-3">Recent Workloads on this Node</h2>
+    <% @workloads.each do |workload| %>
+      <%= render partial: "workloads/workload_row", locals: { workload: workload } %>
+    <% end %>
+    <% if @workloads.empty? %>
+      <p class="text-gray-500 text-sm text-center py-4">No workloads assigned yet.</p>
+    <% end %>
+  </div>
+</div>

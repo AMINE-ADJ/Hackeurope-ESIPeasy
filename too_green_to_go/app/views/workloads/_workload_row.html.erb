@@ -1,0 +1,56 @@
+<% # Workload row partial used in dashboard and workloads index %>
+<div class="px-4 py-3 flex items-center justify-between hover:bg-tg-dark-700/30 transition" id="workload_<%= workload.id %>">
+  <div class="flex items-center space-x-3">
+    <div class="flex-shrink-0">
+      <% case workload.status %>
+      <% when "running" %>
+        <div class="w-2.5 h-2.5 bg-tg-green-400 rounded-full pulse-green"></div>
+      <% when "pending" %>
+        <div class="w-2.5 h-2.5 bg-gray-400 rounded-full"></div>
+      <% when "routing" %>
+        <div class="w-2.5 h-2.5 bg-blue-400 rounded-full pulse-green"></div>
+      <% when "paused" %>
+        <div class="w-2.5 h-2.5 bg-yellow-400 rounded-full"></div>
+      <% when "rerouting" %>
+        <div class="w-2.5 h-2.5 bg-yellow-400 rounded-full pulse-green"></div>
+      <% when "completed" %>
+        <div class="w-2.5 h-2.5 bg-tg-green-600 rounded-full"></div>
+      <% when "failed" %>
+        <div class="w-2.5 h-2.5 bg-red-400 rounded-full"></div>
+      <% end %>
+    </div>
+    <div>
+      <%= link_to workload_path(workload), class: "text-sm text-white hover:text-tg-green-400 font-medium" do %>
+        <%= workload.name || "Workload ##{workload.id}" %>
+      <% end %>
+      <div class="flex items-center space-x-2 text-[10px] text-gray-500">
+        <span class="px-1.5 py-0.5 bg-tg-dark-700 rounded"><%= workload.workload_type %></span>
+        <span class="px-1.5 py-0.5 bg-tg-dark-700 rounded"><%= workload.priority %></span>
+        <% if workload.green_only? %>
+          <span class="px-1.5 py-0.5 bg-tg-green-900/50 text-tg-green-400 rounded">🌿 green-only</span>
+        <% end %>
+        <% if workload.green_tier.present? && workload.green_tier != "standard" %>
+          <span class="px-1.5 py-0.5 bg-tg-green-900/50 text-tg-green-400 rounded"><%= workload.green_tier == "100_pct_recycled" ? "♻️ recycled" : "🌱 green" %></span>
+        <% end %>
+        <% if workload.broker_tier_used.present? %>
+          <span class="px-1.5 py-0.5 bg-indigo-900/50 text-indigo-400 rounded"><%= workload.broker_tier_used.gsub('_', ' ').truncate(15) %></span>
+        <% end %>
+        <% if workload.checkpoint_enabled? %>
+          <span class="px-1.5 py-0.5 bg-blue-900/50 text-blue-400 rounded">💾 ckpt</span>
+        <% end %>
+        <% if workload.reroute_count > 0 %>
+          <span class="px-1.5 py-0.5 bg-yellow-900/50 text-yellow-400 rounded">🔄 ×<%= workload.reroute_count %></span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  <div class="text-right">
+    <% if workload.compute_node %>
+      <p class="text-xs text-tg-green-400"><%= workload.compute_node.name %></p>
+      <p class="text-[10px] text-gray-500"><%= workload.compute_node.region %> · <%= workload.compute_node.grid_zone %></p>
+    <% else %>
+      <p class="text-xs text-gray-500">Unassigned</p>
+    <% end %>
+    <p class="text-[10px] text-gray-600"><%= time_ago_in_words(workload.created_at) %> ago</p>
+  </div>
+</div>

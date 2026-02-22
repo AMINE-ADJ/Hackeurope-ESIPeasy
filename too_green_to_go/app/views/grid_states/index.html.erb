@@ -1,0 +1,32 @@
+<div>
+  <h1 class="text-2xl font-bold text-white mb-6">Grid State History</h1>
+
+  <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-tg-dark-700">
+        <tr>
+          <th class="px-4 py-2 text-left text-xs text-gray-500">Zone</th>
+          <th class="px-4 py-2 text-left text-xs text-gray-500">Carbon</th>
+          <th class="px-4 py-2 text-left text-xs text-gray-500">Renewable</th>
+          <th class="px-4 py-2 text-left text-xs text-gray-500">Price</th>
+          <th class="px-4 py-2 text-left text-xs text-gray-500">Curtailment</th>
+          <th class="px-4 py-2 text-left text-xs text-gray-500">Surplus</th>
+          <th class="px-4 py-2 text-left text-xs text-gray-500">Time</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-700/30">
+        <% @grid_states.each do |state| %>
+          <tr class="hover:bg-tg-dark-700/30">
+            <td class="px-4 py-2 font-mono text-white"><%= state.grid_zone %></td>
+            <td class="px-4 py-2 <%= state.carbon_intensity < 100 ? 'text-tg-green-400' : state.carbon_intensity < 250 ? 'text-yellow-400' : 'text-red-400' %>"><%= state.carbon_intensity.round(1) %></td>
+            <td class="px-4 py-2 text-tg-green-400"><%= state.renewable_pct.round(1) %>%</td>
+            <td class="px-4 py-2 text-blue-400">€<%= state.energy_price.round(2) %></td>
+            <td class="px-4 py-2 text-gray-300"><%= state.curtailment_mw&.round || 0 %> MW</td>
+            <td class="px-4 py-2"><%= state.surplus_detected? ? '⚡ Yes' : '—' %></td>
+            <td class="px-4 py-2 text-gray-500"><%= state.recorded_at.strftime("%H:%M:%S") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

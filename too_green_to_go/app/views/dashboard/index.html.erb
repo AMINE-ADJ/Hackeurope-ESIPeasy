@@ -1,0 +1,214 @@
+<div class="space-y-6">
+  <!-- Hero Stats Bar -->
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">Active Workloads</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1"><%= @stats[:active_workloads] %></p>
+      <p class="text-xs text-gray-500"><%= @stats[:pending_workloads] %> pending</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">Green Nodes</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1"><%= @stats[:green_nodes] %> / <%= @stats[:total_nodes] %></p>
+      <p class="text-xs text-gray-500"><%= @stats[:available_nodes] %> available</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">CO₂ Saved</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1"><%= @stats[:total_carbon_saved_kg] %> kg</p>
+      <p class="text-xs text-tg-green-600">vs baseline grid</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">Revenue</p>
+      <p class="text-2xl font-bold text-blue-400 mt-1">€<%= @stats[:total_revenue] %></p>
+      <p class="text-xs text-gray-500">15% platform fee</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">Healthy Nodes</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1"><%= @stats[:healthy_nodes] %></p>
+      <p class="text-xs text-gray-500">♻️ <%= @stats[:recycler_nodes] %> recyclers</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">MIG Slices</p>
+      <p class="text-2xl font-bold text-indigo-400 mt-1"><%= @stats[:mig_slices_available] %></p>
+      <p class="text-xs text-gray-500">available GPU slices</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">Reroute Rate</p>
+      <p class="text-2xl font-bold text-yellow-400 mt-1"><%= @stats[:reroute_rate] %>%</p>
+      <p class="text-xs text-gray-500">adaptive routing</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase tracking-wide">Surplus Zones</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1 <%= 'pulse-green' if @stats[:surplus_zones].any? %>"><%= @stats[:surplus_zones].count %></p>
+      <p class="text-xs text-tg-green-600"><%= @stats[:surplus_zones].join(', ').presence || 'None' %></p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Grid Zone Status (Left Column) -->
+    <div class="lg:col-span-2 space-y-4">
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-700/50 flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-gray-300">🌍 Live Grid Zones — Energy & Carbon</h2>
+          <%= button_to "Refresh", demo_simulate_grid_cycle_path, method: :post, class: "text-xs text-tg-green-500 hover:text-tg-green-400" %>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4">
+          <% @grid_zones.each do |zone| %>
+            <div class="grid-card bg-tg-dark-700/50 rounded-lg p-3 border border-gray-600/30 <%= 'border-tg-green-500/50 bg-tg-green-900/10' if zone[:surplus] %>">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                  <span class="font-mono text-sm font-bold text-white"><%= zone[:zone] %></span>
+                  <% if zone[:surplus] %>
+                    <span class="px-1.5 py-0.5 text-[10px] bg-tg-green-500/20 text-tg-green-400 rounded-full font-medium pulse-green">SURPLUS</span>
+                  <% end %>
+                </div>
+                <span class="text-[10px] text-gray-500">
+                  <% if zone[:trend] == "rising" %>📈
+                  <% elsif zone[:trend] == "falling" %>📉
+                  <% else %>➡️<% end %>
+                  <%= zone[:trend] %>
+                </span>
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <p class="text-[10px] text-gray-500">Carbon</p>
+                  <p class="text-sm font-bold <%= zone[:carbon_intensity] < 100 ? 'text-tg-green-400' : zone[:carbon_intensity] < 250 ? 'text-yellow-400' : 'text-red-400' %>">
+                    <%= zone[:carbon_intensity] %>
+                  </p>
+                  <p class="text-[10px] text-gray-600">gCO₂/kWh</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-gray-500">Renewable</p>
+                  <p class="text-sm font-bold <%= zone[:renewable_pct] >= 50 ? 'text-tg-green-400' : 'text-yellow-400' %>">
+                    <%= zone[:renewable_pct] %>%
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-gray-500">Price</p>
+                  <p class="text-sm font-bold text-blue-400">€<%= zone[:energy_price] %></p>
+                  <p class="text-[10px] text-gray-600">/MWh</p>
+                </div>
+              </div>
+              <div class="mt-2 flex items-center justify-between text-[10px] text-gray-500">
+                <span><%= zone[:nodes_count] %> nodes</span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Recent Workloads (Hotwire live stream) -->
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-700/50 flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-gray-300">🚀 Recent Workloads</h2>
+          <%= link_to "View All →", workloads_path, class: "text-xs text-tg-green-500 hover:text-tg-green-400" %>
+        </div>
+        <div id="workloads" class="divide-y divide-gray-700/30">
+          <%= turbo_frame_tag "workloads_list" do %>
+            <% @recent_workloads.each do |workload| %>
+              <%= render partial: "workloads/workload_row", locals: { workload: workload } %>
+            <% end %>
+            <% if @recent_workloads.empty? %>
+              <div class="p-8 text-center text-gray-500 text-sm">
+                No workloads yet. Click "🚀 New Workload" to simulate one.
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Routing & Alerts -->
+    <div class="space-y-4">
+      <!-- Active Curtailment Alerts -->
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-700/50">
+          <h2 class="text-sm font-semibold text-gray-300">🔴 Curtailment Alerts</h2>
+        </div>
+        <div class="p-3 space-y-2">
+          <% @active_curtailments.each do |event| %>
+            <div class="bg-<%= event.severity == 'critical' ? 'red' : event.severity == 'high' ? 'yellow' : 'tg-dark' %>-900/30 rounded-lg p-3 border border-<%= event.severity == 'critical' ? 'red' : event.severity == 'high' ? 'yellow' : 'gray' %>-700/30">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-bold text-<%= event.severity == 'critical' ? 'red' : event.severity == 'high' ? 'yellow' : 'gray' %>-400">
+                  <%= event.severity.upcase %> — <%= event.grid_zone %>
+                </span>
+                <span class="text-[10px] text-gray-500"><%= time_ago_in_words(event.detected_at) %> ago</span>
+              </div>
+              <p class="text-xs text-gray-400"><%= event.curtailment_mw.round %>MW curtailed</p>
+              <p class="text-[10px] text-tg-green-500 mt-1">Potential: €<%= event.potential_savings_eur.round %> savings</p>
+              <% if event.elevenlabs_audio_url %>
+                <div class="mt-2">
+                  <span class="text-[10px] text-blue-400">🔊 Audio alert generated</span>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+          <% if @active_curtailments.empty? %>
+            <p class="text-center text-gray-500 text-sm py-4">No active alerts</p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Recent Routing Decisions -->
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-700/50">
+          <h2 class="text-sm font-semibold text-gray-300">🧠 Agent Routing Log</h2>
+        </div>
+        <div class="p-3 space-y-2 max-h-80 overflow-y-auto">
+          <% @recent_routing.each do |decision| %>
+            <div class="flex items-start space-x-2 text-xs">
+              <span class="mt-0.5 flex-shrink-0">
+                <% case decision.decision_type
+                   when "initial_route" %>🟢<%
+                   when "reroute" %>🔄<%
+                   when "pause" %>⏸️<%
+                   when "resume" %>▶️<%
+                   end %>
+              </span>
+              <div>
+                <p class="text-gray-300">
+                  <span class="font-medium"><%= decision.decision_type.humanize %></span>
+                  <% if decision.compute_node %>
+                    → <span class="text-tg-green-400"><%= decision.compute_node.name %></span>
+                  <% end %>
+                </p>
+                <p class="text-gray-500 text-[10px]">
+                  Score: <%= decision.score&.round(3) %> |
+                  <%= decision.carbon_intensity_at_decision&.round(0) %> gCO₂ |
+                  <%= time_ago_in_words(decision.created_at) %> ago
+                  <% if decision.reason %> | <span class="text-yellow-500"><%= decision.reason %></span><% end %>
+                </p>
+              </div>
+            </div>
+          <% end %>
+          <% if @recent_routing.empty? %>
+            <p class="text-center text-gray-500 text-sm py-4">No routing decisions yet</p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Profitability Quick View (Paid.ai) -->
+      <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-4">
+        <h2 class="text-sm font-semibold text-gray-300 mb-3">💰 Profitability (Paid.ai)</h2>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-500">Completed</span>
+            <span class="text-white font-medium"><%= @stats[:completed_workloads] %> workloads</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Revenue</span>
+            <span class="text-tg-green-400 font-medium">€<%= @stats[:total_revenue] %></span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Carbon Saved</span>
+            <span class="text-tg-green-400 font-medium"><%= @stats[:total_carbon_saved_kg] %> kg CO₂</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Reroute Rate</span>
+            <span class="text-yellow-400 font-medium"><%= @stats[:reroute_rate] %>%</span>
+          </div>
+        </div>
+        <%= link_to "Full Report →", dashboard_profitability_path, class: "block mt-3 text-center text-xs text-tg-green-500 hover:text-tg-green-400" %>
+      </div>
+    </div>
+  </div>
+</div>

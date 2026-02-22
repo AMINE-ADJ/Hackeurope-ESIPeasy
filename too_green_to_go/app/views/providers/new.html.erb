@@ -1,0 +1,72 @@
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold text-white mb-6">Register New Provider</h1>
+
+  <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 p-6">
+    <%= form_with(model: @organization, url: providers_path, class: "space-y-4") do |form| %>
+      <% if @organization.errors.any? %>
+        <div class="bg-red-900/50 border border-red-700 text-red-300 p-3 rounded-lg text-sm">
+          <% @organization.errors.full_messages.each do |msg| %>
+            <p><%= msg %></p>
+          <% end %>
+        </div>
+      <% end %>
+
+      <div>
+        <%= form.label :name, "Organization Name", class: "block text-sm text-gray-400 mb-1" %>
+        <%= form.text_field :name, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm", placeholder: "Acme GPU Farms" %>
+      </div>
+
+      <div>
+        <%= form.label :org_type, "Provider Type", class: "block text-sm text-gray-400 mb-1" %>
+        <%= form.select :org_type, [
+          ["🏢 Datacenter — Sell surplus GPU capacity during low demand", "datacenter"],
+          ["🎮 Gamer — Share idle GPU when not gaming", "gamer"],
+          ["♻️ Energy Recycler — GPU compute powered by waste heat/recycled energy", "energy_recycler"]
+        ], {}, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+      </div>
+
+      <div>
+        <%= form.label :contact_email, "Contact Email", class: "block text-sm text-gray-400 mb-1" %>
+        <%= form.email_field :contact_email, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm", placeholder: "ops@example.com" %>
+      </div>
+
+      <div>
+        <%= form.label :tier, "Service Tier", class: "block text-sm text-gray-400 mb-1" %>
+        <%= form.select :tier, [["Enterprise", "enterprise"], ["Premium", "premium"], ["Standard", "standard"]], {}, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" %>
+      </div>
+
+      <!-- Energy Recycler specific fields -->
+      <div id="recycler-fields" class="space-y-4 p-4 bg-tg-green-900/10 rounded-lg border border-tg-green-700/30 hidden">
+        <p class="text-sm text-tg-green-400 font-medium">♻️ Energy Recycling Details</p>
+        <div>
+          <%= form.label :waste_heat_source, "Waste Heat Source", class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.text_field :waste_heat_source, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm", placeholder: "Industrial process heat, biogas plant..." %>
+        </div>
+        <div>
+          <%= form.label :waste_capacity_mw, "Waste Heat Capacity (MW)", class: "block text-sm text-gray-400 mb-1" %>
+          <%= form.number_field :waste_capacity_mw, step: 0.1, class: "w-full bg-tg-dark-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm", placeholder: "5.0" %>
+        </div>
+      </div>
+
+      <div class="pt-4">
+        <%= form.submit "Register Provider", class: "w-full px-4 py-2 bg-tg-green-600 hover:bg-tg-green-500 text-white font-medium rounded-lg transition cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const typeSelect = document.querySelector('select[name="organization[org_type]"]');
+      const recyclerFields = document.getElementById('recycler-fields');
+      function toggleRecycler() {
+        if (typeSelect.value === 'energy_recycler') {
+          recyclerFields.classList.remove('hidden');
+        } else {
+          recyclerFields.classList.add('hidden');
+        }
+      }
+      typeSelect.addEventListener('change', toggleRecycler);
+      toggleRecycler();
+    });
+  </script>
+</div>

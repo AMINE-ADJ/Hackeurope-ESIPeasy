@@ -1,0 +1,51 @@
+source "https://rubygems.org"
+
+ruby "3.0.2"
+
+gem "rails", "~> 7.1.6"
+gem "sprockets-rails"
+gem "sqlite3", ">= 1.4"
+gem "puma", ">= 5.0"
+gem "importmap-rails"
+gem "turbo-rails"
+gem "stimulus-rails"
+gem "jbuilder"
+gem "bootsnap", require: false
+gem "tzinfo-data", platforms: %i[ mswin mswin64 mingw x64_mingw jruby ]
+
+# === Too Green To Go: Core Dependencies ===
+
+# Payments & Billing
+gem "stripe"
+
+# HTTP client for external APIs (Crusoe, ElevenLabs, Paid.ai, grid data)
+gem "httparty"
+gem "faraday"
+
+# Background jobs (for async workload routing, grid polling)
+gem "sidekiq"
+gem "redis", ">= 4.0.1"
+
+# Solana blockchain integration
+gem "ed25519"
+gem "base58"
+
+# JSON Web Tokens for API auth
+gem "jwt"
+
+# CORS for API consumption
+gem "rack-cors"
+
+# Charting for dashboard
+gem "chartkick"
+gem "groupdate"
+
+group :development, :test do
+  gem "debug", platforms: %i[ mri mswin mswin64 mingw x64_mingw ]
+  gem "faker"
+end
+
+group :development do
+  gem "web-console"
+end
+

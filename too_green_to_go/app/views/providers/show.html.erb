@@ -1,0 +1,126 @@
+<div class="max-w-4xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-white"><%= @organization.name %></h1>
+      <div class="flex items-center space-x-2 mt-2">
+        <% case @organization.org_type %>
+        <% when "datacenter" %>
+          <span class="px-2 py-0.5 text-xs bg-blue-900/50 text-blue-400 rounded-full font-medium">🏢 Datacenter</span>
+        <% when "gamer" %>
+          <span class="px-2 py-0.5 text-xs bg-purple-900/50 text-purple-400 rounded-full font-medium">🎮 Gamer</span>
+        <% when "energy_recycler" %>
+          <span class="px-2 py-0.5 text-xs bg-tg-green-900/50 text-tg-green-400 rounded-full font-medium">♻️ Energy Recycler</span>
+        <% end %>
+        <% if @organization.verified? %>
+          <span class="px-2 py-0.5 text-xs bg-tg-green-900/50 text-tg-green-400 rounded-full">✓ Verified</span>
+        <% else %>
+          <span class="px-2 py-0.5 text-xs bg-yellow-900/50 text-yellow-400 rounded-full">⏳ Pending Verification</span>
+        <% end %>
+        <% if @organization.always_green? %>
+          <span class="px-2 py-0.5 text-xs bg-tg-green-900/50 text-tg-green-400 rounded-full">🌿 Always Green</span>
+        <% end %>
+      </div>
+    </div>
+    <div class="flex items-center space-x-2">
+      <%= link_to "Edit", edit_provider_path(@organization), class: "px-3 py-2 bg-tg-dark-700 hover:bg-tg-dark-600 text-gray-300 text-sm rounded-lg transition" %>
+      <% unless @organization.onboarding_complete? %>
+        <%= link_to "Complete Onboarding", onboard_provider_path(@organization), class: "px-3 py-2 bg-yellow-600 hover:bg-yellow-500 text-white text-sm rounded-lg transition" %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase">Total Nodes</p>
+      <p class="text-2xl font-bold text-white mt-1"><%= @nodes.count %></p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase">Revenue (Month)</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1">€<%= @revenue.round(2) %></p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase">Carbon Saved</p>
+      <p class="text-2xl font-bold text-tg-green-400 mt-1"><%= (@carbon_saved / 1000.0).round(2) %> kg</p>
+    </div>
+    <div class="bg-tg-dark-800 rounded-xl p-4 border border-gray-700/50">
+      <p class="text-xs text-gray-500 uppercase">Routing Tier</p>
+      <p class="text-2xl font-bold text-blue-400 mt-1"><%= @organization.provider_routing_tier %></p>
+    </div>
+  </div>
+
+  <!-- Hardware Nodes -->
+  <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden mb-6">
+    <div class="px-4 py-3 border-b border-gray-700/50 flex items-center justify-between">
+      <h2 class="text-sm font-semibold text-gray-300">🖥️ Registered Hardware</h2>
+      <%= link_to "➕ Add Hardware", onboard_provider_path(@organization), class: "text-xs text-tg-green-500 hover:text-tg-green-400" %>
+    </div>
+    <div class="divide-y divide-gray-700/30">
+      <% @nodes.each_with_index do |node, idx| %>
+        <div class="px-4 py-3 flex items-center justify-between hover:bg-tg-dark-700/30 transition">
+          <div class="flex items-center space-x-3">
+            <div class="w-2 h-2 rounded-full <%= node.health_status == 'healthy' ? 'bg-tg-green-400' : node.health_status == 'degraded' ? 'bg-yellow-400' : 'bg-red-400' %>"></div>
+            <div>
+              <%= link_to node.name, compute_node_path(node), class: "text-sm text-white hover:text-tg-green-400 font-medium" %>
+              <div class="flex items-center space-x-2 text-[10px] text-gray-500 mt-0.5">
+                <span><%= node.gpu_model %></span>
+                <span>•</span>
+                <span><%= node.gpu_vram_mb %>MB</span>
+                <span>•</span>
+                <span><%= node.grid_zone %></span>
+                <% if node.mig_enabled? %>
+                  <span class="px-1.5 py-0.5 bg-indigo-900/50 text-indigo-400 rounded">MIG</span>
+                <% end %>
+                <% if @compliance[idx] %>
+                  <span class="px-1.5 py-0.5 bg-tg-green-900/50 text-tg-green-400 rounded">✓ Compliant</span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4 text-xs">
+            <div class="text-right">
+              <p class="text-gray-500">Utilization</p>
+              <p class="font-bold text-<%= node.gpu_utilization.to_f < 0.5 ? 'tg-green' : node.gpu_utilization.to_f < 0.8 ? 'yellow' : 'red' %>-400"><%= (node.gpu_utilization.to_f * 100).round %>%</p>
+            </div>
+            <div class="text-right">
+              <p class="text-gray-500">Slices</p>
+              <p class="font-bold text-white"><%= node.gpu_slices.available.count %> / <%= node.gpu_slices.count %></p>
+            </div>
+            <div class="text-right">
+              <p class="text-gray-500">Benchmark</p>
+              <% latest = node.benchmarks.completed.order(completed_at: :desc).first %>
+              <p class="font-bold text-white"><%= latest&.score&.round(1) || '—' %></p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      <% if @nodes.empty? %>
+        <div class="px-4 py-8 text-center text-gray-500 text-sm">
+          No hardware registered. <%= link_to "Register hardware →", onboard_provider_path(@organization), class: "text-tg-green-500" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- GPU Slices -->
+  <% slices = @nodes.flat_map(&:gpu_slices) %>
+  <% if slices.any? %>
+    <div class="bg-tg-dark-800 rounded-xl border border-gray-700/50 overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-700/50">
+        <h2 class="text-sm font-semibold text-gray-300">🔪 GPU Slices (MIG)</h2>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 p-4">
+        <% slices.each do |slice| %>
+          <div class="bg-tg-dark-700/50 rounded-lg p-3 border border-gray-600/30 <%= 'border-tg-green-500/30' if slice.status == 'available' %>">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-white"><%= slice.slice_profile %></span>
+              <span class="px-1.5 py-0.5 text-[10px] rounded-full <%= slice.status == 'available' ? 'bg-tg-green-900/50 text-tg-green-400' : 'bg-yellow-900/50 text-yellow-400' %>"><%= slice.status %></span>
+            </div>
+            <p class="text-[10px] text-gray-500"><%= slice.vram_mb %>MB VRAM • <%= slice.compute_units %> CU</p>
+            <p class="text-[10px] text-gray-600">Node: <%= slice.compute_node.name %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
