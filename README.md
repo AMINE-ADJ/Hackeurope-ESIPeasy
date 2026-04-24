@@ -6,6 +6,8 @@
 
 Too Green To Go is a full-stack platform that monitors real-time energy grids across **11 zones** (EU + US), scores GPU nodes on a composite carbon-price-utilization metric, and **automatically routes AI workloads** to wherever clean energy is cheapest — in real-time. When the grid shifts, an adaptive agent **reroutes workloads mid-execution** to stay on green power.
 
+Click here to watch the DEMO !
+[![Watch the DEMO](https://img.youtube.com/vi/bAB5XDTxCcs/maxresdefault.jpg)](https://youtu.be/bAB5XDTxCcs)
 ---
 
 ## 📋 Table of Contents
@@ -470,8 +472,6 @@ The Vite dev server proxies all `/api/*` requests to the Rails backend at `local
 | MIG slicing | 7 slices/GPU | Fractional allocation at <70% utilization |
 
 ---
-
-[![Watch the DEMO](https://img.youtube.com/vi/bAB5XDTxCcs/maxresdefault.jpg)](https://youtu.be/bAB5XDTxCcs)
 
 
 ## 👥 Team
