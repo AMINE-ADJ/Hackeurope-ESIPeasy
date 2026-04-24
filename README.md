@@ -471,6 +471,9 @@ The Vite dev server proxies all `/api/*` requests to the Rails backend at `local
 
 ---
 
+[![Watch the DEMO](https://img.youtube.com/vi/bAB5XDTxCcs/maxresdefault.jpg)](https://youtu.be/bAB5XDTxCcs)
+
+
 ## 👥 Team
 
 Built at **HackEurope** — the entire platform engineered in a single weekend.
